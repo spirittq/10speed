@@ -12,7 +12,7 @@ def export_from(export_file):
     with open(export_file, mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
-            if row["CandidateOrCommittee"]:
+            if row["CandidateOrCommittee"] == "COH":
                 add_dictionary_to_list(row)
 
 
