@@ -2,6 +2,7 @@ import csv
 import datetime
 import logging
 import sys
+import re
 
 logging.basicConfig(handlers=[logging.FileHandler(filename="errors.log",
                                                   encoding="utf-8")],
@@ -10,6 +11,7 @@ logging.basicConfig(handlers=[logging.FileHandler(filename="errors.log",
 
 def export_from(export_file):
     """Opens csv file, goes through each entry and checks if it's candidate or not"""
+
     try:
         with open(export_file, mode='r') as csv_file:
             csv_reader = csv.DictReader(csv_file)
@@ -36,7 +38,6 @@ def import_to(new_csv, import_file):
                     writer.writerow(row_dict)
                 except Exception:
                     logging.info(row_dict)
-                    pass
     except Exception:
         print("Something went wrong")
         sys.exit()
@@ -62,15 +63,25 @@ def add_dictionary_to_list(row):
 
 
 def unix_format(date):
-    """Converts date into UNIX format"""
+    """Converts date into UNIX format. Too many zeroes, decided to remove them from string.
+    Some entries don't have miliseconds, checking them with Regex"""
 
-    date = date[:-3]
-    new_date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
-    return new_date.timestamp()
+
+    pattern = re.compile(r'\.')
+    res = pattern.search(date)
+    if res:
+        date = date[:-3]
+        new_date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
+        return new_date.timestamp()
+    else:
+        new_date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        return new_date.timestamp()
+
 
 
 def iso_format(date):
-    """Converts date into ISO format. Not sure whether .isoformat() was needed (?)"""
+    """Converts date into ISO format. Not sure whether .isoformat() was needed (?)
+    However, takes only MM/DD/YYYY format"""
 
     new_date = datetime.datetime.strptime(date, "%m/%d/%Y")
     return datetime.datetime.strftime(new_date, "%Y-%m-%d")
