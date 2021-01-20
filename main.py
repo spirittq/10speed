@@ -1,5 +1,4 @@
 import csv
-import time
 import datetime
 import logging
 
@@ -47,7 +46,8 @@ def add_dictionary_to_list(row):
 
 def unix_format(date):
     date = date[:-3]
-    return time.mktime(datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f").timetuple())
+    new_date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
+    return new_date.timestamp()
 
 
 def iso_format(date):
@@ -60,6 +60,7 @@ if __name__ == "__main__":
     new_csv = []
     export_file = 'transactions.csv'
     import_file = 'result.csv'
+
     print("Starting export")
     export_from(export_file)
     print("Ending export")
