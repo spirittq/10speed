@@ -1,7 +1,7 @@
 import csv
 import datetime
 import logging
-
+import sys
 
 logging.basicConfig(handlers=[logging.FileHandler(filename="errors.log",
                                                   encoding="utf-8")],
@@ -9,26 +9,43 @@ logging.basicConfig(handlers=[logging.FileHandler(filename="errors.log",
 
 
 def export_from(export_file):
-    with open(export_file, mode='r') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        for row in csv_reader:
-            if row["CandidateOrCommittee"] == "COH":
-                add_dictionary_to_list(row)
+    """Opens csv file, goes through each entry and checks if it's candidate or not"""
+    try:
+        with open(export_file, mode='r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                if row["CandidateOrCommittee"] == "COH":
+                    add_dictionary_to_list(row)
+    except Exception:
+        print("Something went wrong")
+        sys.exit()
 
 
 def import_to(new_csv, import_file):
-    with open(import_file, mode='w') as csv_file:
-        fieldnames = ["ReportFiledDate", "CandidateName", "PeriodBegining", "PeriodEnding", "TransactionID", "TransactionType", "TransactionAmount"]
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        writer.writeheader()
-        for row_dict in new_csv:
-            try:
-                writer.writerow(row_dict)
-            except Exception:
-                logging.info(row_dict)
+    """Starts importing list of dictionaries into new csv with needed headers. If there is an error,
+    inserts processed entry into errors.log """
+
+    try:
+        with open(import_file, mode='w') as csv_file:
+            fieldnames = ["ReportFiledDate", "CandidateName", "PeriodBegining", "PeriodEnding", "TransactionID",
+                          "TransactionType", "TransactionAmount"]
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+            for row_dict in new_csv:
+                try:
+                    writer.writerow(row_dict)
+                except Exception:
+                    logging.info(row_dict)
+                    pass
+    except Exception:
+        print("Something went wrong")
+        sys.exit()
 
 
 def add_dictionary_to_list(row):
+    """Adds required values into dictionary then appends it to the list. If there is an error,
+    inserts entry into errors.log """
+
     try:
         new_dict = {
             "ReportFiledDate": unix_format(row["ReportFiledDate"]),
@@ -45,12 +62,16 @@ def add_dictionary_to_list(row):
 
 
 def unix_format(date):
+    """Converts date into UNIX format"""
+
     date = date[:-3]
     new_date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
     return new_date.timestamp()
 
 
 def iso_format(date):
+    """Converts date into ISO format. Not sure whether .isoformat() was needed (?)"""
+
     new_date = datetime.datetime.strptime(date, "%m/%d/%Y")
     return datetime.datetime.strftime(new_date, "%Y-%m-%d")
 
